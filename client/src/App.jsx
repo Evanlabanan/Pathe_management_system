@@ -1,41 +1,38 @@
-import { useEffect, useState } from 'react'
-import { http } from './api/http'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Navbar from './components/Navbar';
+
+// Importation de TOUTES les pages de l'application
+import BranchPage from './pages/setup/BranchPage';
+import MoviePage from './pages/movies/MoviePage';
+import TheaterPage from './pages/theaters/TheaterPage';
+import TicketSalesPage from './pages/sales/TicketSalesPage';
+import PatheReports from './pages/reports/PatheReports';
+
+import './App.css';
 
 function App() {
-  const [branches, setBranches] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    http.get('/api/branches')
-      .then(response => {
-        setBranches(response.data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error("Erreur de connexion à l'API:", error);
-        setLoading(false);
-      });
-  }, []);
-
   return (
-    <div className="App">
-      <h1>🐘 Pathé Management System</h1>
-      <h2>Liste de nos succursales :</h2>
-
-      {loading ? (
-        <p>Chargement des cinémas...</p>
-      ) : (
-        <ul style={{ textAlign: 'left', display: 'inline-block' }}>
-          {branches.map(branch => (
-            <li key={branch.branch_id}>
-              <strong>{branch.branch_name}</strong> ({branch.branch_code}) - Situé à {branch.location_city}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
+    <BrowserRouter>
+      <div className="App">
+        <Navbar />
+        
+        <Routes>
+          {/* Redirection par défaut */}
+          <Route path="/" element={<Navigate to="/branches" replace />} />
+          
+          {/* Les 5 grandes sections du site */}
+          <Route path="/branches" element={<BranchPage />} />
+          <Route path="/movies" element={<MoviePage />} />
+          <Route path="/theaters" element={<TheaterPage />} />
+          <Route path="/sales" element={<TicketSalesPage />} />
+          <Route path="/reports" element={<PatheReports />} />
+          
+          {/* Page 404 (Erreur de lien) */}
+          <Route path="*" element={<h2 style={{ padding: '20px' }}>🚧 Page introuvable 🚧</h2>} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

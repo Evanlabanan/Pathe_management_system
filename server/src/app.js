@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import branchesRoutes from "./routes/branches.routes.js"; // <-- AJOUT 1
-
+import branchesRoutes from "./routes/branches.routes.js";
+import reportsRoutes from "./routes/reports.routes.js";
 const app = express();
 
 app.use(cors());
@@ -12,6 +12,6 @@ app.get("/api/status", (req, res) => {
 });
 
 // On dit à l'API d'utiliser notre route pour les succursales
-app.use("/api/branches", branchesRoutes); // <-- AJOUT 2
-
+app.use("/api/branches", branchesRoutes);
+app.use("/api/reports", reportsRoutes);
 export default app;
