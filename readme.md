@@ -1,90 +1,110 @@
-
-### ARBORESCENCE ###
-
-
 pathe-project/
 │
-├── database/                   # Pour stocker tes scripts SQL
+├── .env.exemple
+├── docker-compose.yml
+├── package.json
+├── package-lock.json
+├── readme.md
+│
+├── database/
 │   └── init/
 │       ├── 001_pathe_initial_schema.sql
 │       └── 002_pathe_seed_data.sql
 │
-├── server/                     # TON BACKEND (Node.js / Express)
+├── server/
+│   ├── Dockerfile
 │   ├── package.json
+│   ├── package-lock.json
+│   ├── .env
+│   │
 │   └── src/
-│       ├── app.js              # Configuration de Express
-│       ├── server.js           # Point d'entrée pour lancer le serveur
-│       ├── db.js               # Connexion à Supabase (pg)
+│       ├── app.js
+│       ├── server.js
+│       ├── db.js
 │       │
-│       ├── routes/             # Les URL de ton API (ex: router.get('/movies'))
-│       │   ├── movies.routes.js
-│       │   ├── theaters.routes.js
-│       │   ├── showtimes.routes.js
-│       │   ├── sales.routes.js
-│       │   └── setup.routes.js # Pour tes "Simple Forms" (Branch, Language, etc.)
+│       ├── routes/
+│       │   ├── branches.routes.js      ✅ DONE
+│       │   └── reports.routes.js       ✅ DONE (receipt, sales, performance, theaters, movies)
+│       │   ├── movies.routes.js        ⬜ TODO
+│       │   ├── theaters.routes.js      ⬜ TODO
+│       │   ├── showtimes.routes.js     ⬜ TODO
+│       │   ├── sales.routes.js         ⬜ TODO
+│       │   └── setup.routes.js         ⬜ TODO
 │       │
-│       ├── controllers/        # La logique de réception des requêtes
-│       │   ├── movies.controller.js
-│       │   ├── theaters.controller.js
-│       │   ├── showtimes.controller.js
-│       │   ├── sales.controller.js
-│       │   └── setup.controller.js
+│       ├── controllers/
+│       │   ├── branches.controller.js  ✅ DONE
+│       │   └── reports.controller.js   ✅ DONE
+│       │   ├── movies.controller.js    ⬜ TODO
+│       │   ├── theaters.controller.js  ⬜ TODO
+│       │   ├── showtimes.controller.js ⬜ TODO
+│       │   ├── sales.controller.js     ⬜ TODO
+│       │   └── setup.controller.js     ⬜ TODO
 │       │
-│       └── services/           # C'est ici qu'on mettra TOUT ton code SQL !
-│           ├── movies.service.js
-│           ├── theaters.service.js
-│           ├── showtimes.service.js
-│           ├── sales.service.js
-│           └── setup.service.js
+│       └── services/
+│           ├── branches.service.js     ✅ DONE
+│           └── reports.service.js      ✅ DONE
+│           ├── movies.service.js       ⬜ TODO
+│           ├── theaters.service.js     ⬜ TODO
+│           ├── showtimes.service.js    ⬜ TODO
+│           ├── sales.service.js        ⬜ TODO
+│           └── setup.service.js        ⬜ TODO
 │
-└── client/                     # TON FRONTEND (React / Vite)
+└── client/
+    ├── Dockerfile
     ├── package.json
+    ├── package-lock.json
     ├── index.html
+    ├── vite.config.js
+    ├── eslint.config.js
+    ├── .gitignore
+    │
+    ├── public/
+    │   ├── favicon.svg
+    │   └── icons.svg
+    │
     └── src/
-        ├── main.jsx            # Point d'entrée React (avec ton Menu)
-        ├── App.jsx             # Configuration des routes (React Router)
-        ├── index.css           # Ton design (tu pourras reprendre le CSS du prof)
+        ├── main.jsx                    ✅ DONE
+        ├── App.jsx                     ✅ DONE (5 routes configurées)
+        ├── App.css
+        ├── index.css
         │
-        ├── api/                # Les fichiers pour appeler ton backend (fetch)
-        │   ├── http.js         # Le wrapper de base (souvent donné par le prof)
-        │   ├── movies.api.js
-        │   ├── theaters.api.js
-        │   ├── showtimes.api.js
-        │   ├── sales.api.js
-        │   └── reports.api.js
+        ├── assets/
+        │   ├── react.svg
+        │   └── vite.svg
         │
-        ├── components/         # Les petits bouts de code réutilisables
-        │   ├── DataList.jsx    # Ton tableau pour afficher les listes
-        │   └── Modal.jsx       # Pour les fenêtres Pop-up (ex: choisir un film)
+        ├── api/
+        │   ├── http.js                 ✅ DONE (axios wrapper)
+        │   ├── movies.api.js           ⬜ TODO (fichier vide)
+        │   ├── theaters.api.js         ⬜ TODO (fichier vide)
+        │   ├── showtimes.api.js        ⬜ TODO (fichier vide)
+        │   ├── sales.api.js            ⬜ TODO (fichier vide)
+        │   └── reports.api.js          ⬜ TODO (fichier vide, logique dans PatheReports.jsx)
         │
-        └── pages/              # TES ÉCRANS VISUELS
+        ├── components/
+        │   ├── Navbar.jsx              ✅ DONE
+        │   ├── DataList.jsx            ⬜ TODO (fichier vide)
+        │   └── Modal.jsx               ⬜ TODO (fichier vide)
+        │
+        └── pages/
+            ├── setup/
+            │   └── BranchPage.jsx      ✅ DONE (liste + API call)
+            │
             ├── movies/
-            │   ├── MovieList.jsx
-            │   └── MoviePage.jsx      # Ton fameux "Movie Setup Form"
+            │   ├── MoviePage.jsx       ⬜ STUB (placeholder)
+            │   └── MovieList.jsx       ⬜ TODO (fichier vide)
             │
             ├── theaters/
-            │   ├── TheaterList.jsx
-            │   └── TheaterPage.jsx    # Le "Theater Setup Form"
+            │   ├── TheaterPage.jsx     ⬜ STUB (placeholder)
+            │   └── TheaterList.jsx     ⬜ TODO (fichier vide)
             │
             ├── showtimes/
-            │   ├── ShowtimeList.jsx
-            │   ├── DailySetupPage.jsx # Le "Theater Showtime Daily Setup"
-            │   └── SeatPricingPage.jsx# Le "Set Movie Seat Price"
+            │   ├── DailySetupPage.jsx  ⬜ TODO (fichier vide)
+            │   ├── SeatPricingPage.jsx ⬜ TODO (fichier vide)
+            │   └── ShowtimeList.jsx    ⬜ TODO (fichier vide)
             │
             ├── sales/
-            │   ├── TicketSalesList.jsx
-            │   └── TicketSalesPage.jsx# Le "Movie Tickets Sales Form"
+            │   ├── TicketSalesPage.jsx ⬜ STUB (placeholder)
+            │   └── TicketSalesList.jsx ⬜ TODO (fichier vide)
             │
-            ├── reports/
-            │   └── PatheReports.jsx   # La page avec les onglets pour tes 12 rapports
-            │
-            └── setup/                 # Un dossier pour tous tes 9 formulaires simples
-                ├── BranchPage.jsx
-                ├── MemberPage.jsx
-                ├── EmployeePage.jsx
-                └── ... (autres simple forms)
-
-
-
-### ARBORESCENCE ###
-
+            └── reports/
+                └── PatheReports.jsx    ✅ DONE (3 rapports Evan : receipt, sales, performance)

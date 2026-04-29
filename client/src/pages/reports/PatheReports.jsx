@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { http } from '../../api/http';
+import { reportsApi } from '../../api/reports.api'; // On importe notre "standardiste"
 
 export default function PatheReports() {
   const [activeTab, setActiveTab] = useState('receipt');
@@ -16,7 +16,7 @@ export default function PatheReports() {
   const [dates, setDates] = useState({ start: '2026-03-01', end: '2026-03-31' });
   const [perfFilters, setPerfFilters] = useState({ theater: '', movie: '' });
 
-  // Style des "Gros Rectangles"
+  // Styles "Nickel Chrome"
   const boxStyle = {
     padding: '15px',
     fontSize: '16px',
@@ -35,36 +35,49 @@ export default function PatheReports() {
     textAlign: 'center'
   };
 
-  // Chargement des listes au démarrage
+  // Chargement des listes au démarrage via l'API
   useEffect(() => {
-    http.get('/api/reports/theaters').then(res => setTheaterList(res.data)).catch(e => console.log(e));
-    http.get('/api/reports/movies').then(res => setMovieList(res.data)).catch(e => console.log(e));
+    reportsApi.getTheaters().then(res => setTheaterList(res.data)).catch(e => console.error(e));
+    reportsApi.getMovies().then(res => setMovieList(res.data)).catch(e => console.error(e));
   }, []);
 
-  const executeSearch = (type) => {
+  // La fonction de recherche qui utilise le service reportsApi
+  const executeSearch = async (type) => {
     setLoading(true);
     setError('');
-    let url = '';
-    
-    if (type === 'receipt') url = `/api/reports/receipt/${receiptNo}`;
-    else if (type === 'sales') url = `/api/reports/sales?from=${dates.start}&to=${dates.end}`;
-    else if (type === 'performance') {
-      url = `/api/reports/performance?start=${dates.start}&end=${dates.end}&theater=${perfFilters.theater}&movie=${perfFilters.movie}`;
+    try {
+      let response;
+      if (type === 'receipt') {
+        response = await reportsApi.getReceipt(receiptNo);
+      } else if (type === 'sales') {
+        response = await reportsApi.getSales(dates.start, dates.end);
+      } else if (type === 'performance') {
+        response = await reportsApi.getPerformance({
+          start: dates.start,
+          end: dates.end,
+          theater: perfFilters.theater,
+          movie: perfFilters.movie
+        });
+      }
+      
+      if (response.data.length === 0) setError("No data found for this selection.");
+      setData(response.data);
+    } catch (err) {
+      setError("An error occurred while fetching data.");
+      setData([]);
+    } finally {
+      setLoading(false);
     }
-
-    http.get(url)
-      .then(res => { setData(res.data); setLoading(false); })
-      .catch(() => { setError("No data found."); setData([]); setLoading(false); });
   };
 
   return (
     <div style={{ padding: '40px', maxWidth: '1100px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>📊 Pathé Reports Center</h2>
       
-      {/* Onglets style Pathé */}
+      {/* Navigation Onglets */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '40px' }}>
         {['receipt', 'sales', 'performance'].map(t => (
-          <button key={t} onClick={() => { setActiveTab(t); setData([]); }} 
+          <button key={t} onClick={() => { setActiveTab(t); setData([]); setError(''); }} 
                   style={{ 
                     padding: '12px 25px', 
                     borderRadius: '25px',
@@ -72,7 +85,8 @@ export default function PatheReports() {
                     background: activeTab === t ? '#e50914' : 'transparent',
                     color: activeTab === t ? 'white' : '#e50914',
                     fontWeight: 'bold',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    transition: '0.3s'
                   }}>
             {t.toUpperCase()}
           </button>
@@ -81,11 +95,39 @@ export default function PatheReports() {
 
       <div style={{ background: '#f9f9f9', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
         
-        {/* PERFORMANCE ANALYSIS : La grille corrigée */}
+        {/* ONGLET RECEIPT */}
+        {activeTab === 'receipt' && (
+          <div style={{ textAlign: 'center' }}>
+            <h3 style={{ marginBottom: '20px' }}>FIND A SPECIFIC RECEIPT</h3>
+            <input type="text" placeholder="REC-XXXXX" style={{...boxStyle, width: '300px', marginRight: '10px'}} 
+                   value={receiptNo} onChange={e => setReceiptNo(e.target.value)} />
+            <button onClick={() => executeSearch('receipt')} 
+                    style={{padding: '15px 30px', background: '#333', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold'}}>
+              SEARCH
+            </button>
+          </div>
+        )}
+
+        {/* ONGLET SALES */}
+        {activeTab === 'sales' && (
+          <div style={{ textAlign: 'center' }}>
+            <h3 style={{ marginBottom: '20px' }}>SALES HISTORY PERIOD</h3>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
+              <input type="date" style={boxStyle} value={dates.start} onChange={e => setDates({...dates, start: e.target.value})} />
+              <span style={{fontWeight: 'bold'}}>TO</span>
+              <input type="date" style={boxStyle} value={dates.end} onChange={e => setDates({...dates, end: e.target.value})} />
+              <button onClick={() => executeSearch('sales')} 
+                      style={{padding: '15px 30px', background: '#e50914', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold'}}>
+                VIEW SALES
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ONGLET PERFORMANCE */}
         {activeTab === 'performance' && (
           <div>
             <h3 style={{ textAlign: 'center', marginBottom: '25px', color: '#333' }}>PERFORMANCE ANALYSIS FILTERS</h3>
-            
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '25px', marginBottom: '25px' }}>
               <div>
                 <label style={labelStyle}>Start Date</label>
@@ -103,56 +145,40 @@ export default function PatheReports() {
                 </select>
               </div>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '25px', marginBottom: '30px' }}>
-              <div>
-                <label style={labelStyle}>Movie (LoV)</label>
-                <select style={boxStyle} value={perfFilters.movie} onChange={e => setPerfFilters({...perfFilters, movie: e.target.value})}>
-                  <option value="">-- All Movies --</option>
-                  {movieList.map(m => <option key={m.movie_id} value={m.movie_id}>{m.name_of_movie}</option>)}
-                </select>
-              </div>
+            <div style={{ marginBottom: '30px' }}>
+              <label style={labelStyle}>Movie (LoV)</label>
+              <select style={boxStyle} value={perfFilters.movie} onChange={e => setPerfFilters({...perfFilters, movie: e.target.value})}>
+                <option value="">-- All Movies --</option>
+                {movieList.map(m => <option key={m.movie_id} value={m.movie_id}>{m.name_of_movie}</option>)}
+              </select>
             </div>
-
-            <button onClick={() => executeSearch('performance')} 
-                    style={{ width: '20%', padding: '20px', background: '#e50914', color: 'white', border: 'none', borderRadius: '10px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' }}>
-              RUN FULL ANALYSIS
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button onClick={() => executeSearch('performance')} 
+                      style={{ padding: '12px 40px', background: '#e50914', color: 'white', border: 'none', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 10px rgba(229, 9, 20, 0.3)' }}>
+                RUN FULL ANALYSIS
+              </button>
+            </div>
           </div>
-        )}
-
-        {/* Autres onglets simplifiés pour l'exemple */}
-        {activeTab === 'receipt' && (
-           <div style={{ textAlign: 'center' }}>
-              <input type="text" placeholder="REC-XXXXX" style={{...boxStyle, width: '300px', marginRight: '10px'}} value={receiptNo} onChange={e => setReceiptNo(e.target.value)} />
-              <button onClick={() => executeSearch('receipt')} style={{padding: '15px 30px', background: '#333', color: 'white', border: 'none', borderRadius: '10px'}}>SEARCH</button>
-           </div>
-        )}
-
-        {activeTab === 'sales' && (
-           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-              <input type="date" style={boxStyle} value={dates.start} onChange={e => setDates({...dates, start: e.target.value})} />
-              <input type="date" style={boxStyle} value={dates.end} onChange={e => setDates({...dates, end: e.target.value})} />
-              <button onClick={() => executeSearch('sales')} style={{padding: '15px 30px', background: '#e50914', color: 'white', border: 'none', borderRadius: '10px'}}>VIEW</button>
-           </div>
         )}
 
         <hr style={{ margin: '40px 0', border: 'none', borderTop: '1px solid #eee' }} />
 
-        {/* Tableau des résultats */}
-        {loading && <p style={{textAlign: 'center'}}>Loading...</p>}
+        {/* AFFICHAGE DES RÉSULTATS */}
+        {loading && <p style={{textAlign: 'center', fontSize: '18px'}}>⏳ Loading data...</p>}
+        {error && <p style={{color: 'red', textAlign: 'center', fontWeight: 'bold'}}>{error}</p>}
+        
         {data.length > 0 && (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white' }}>
               <thead style={{ background: '#333', color: 'white' }}>
                 <tr>
-                  {Object.keys(data[0]).map(k => <th key={k} style={{ padding: '15px', textAlign: 'left' }}>{k.toUpperCase()}</th>)}
+                  {Object.keys(data[0]).map(k => <th key={k} style={{ padding: '15px', textAlign: 'left', fontSize: '12px', textTransform: 'uppercase' }}>{k.replace('_', ' ')}</th>)}
                 </tr>
               </thead>
               <tbody>
                 {data.map((row, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                    {Object.values(row).map((v, j) => <td key={j} style={{ padding: '15px' }}>{v}</td>)}
+                    {Object.values(row).map((v, j) => <td key={j} style={{ padding: '15px', fontSize: '14px', color: '#444' }}>{v}</td>)}
                   </tr>
                 ))}
               </tbody>

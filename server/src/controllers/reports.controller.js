@@ -2,7 +2,7 @@ import * as reportsService from '../services/reports.service.js';
 
 export async function getReceipt(req, res) {
   try {
-    const data = await reportsService.getReceiptDetails(req.params.id);
+    const data = await reportsService.getReceiptDetails(req.params.receiptNo);
     res.json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });
