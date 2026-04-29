@@ -1,0 +1,68 @@
+services:
+  database:
+    image: postgres:17-alpine3.22
+    platform: linux/amd64
+    container_name: pathe_database
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "${PORT_DB:-15433}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
+      POSTGRES_DB: ${POSTGRES_DB:-pathe_db}
+    volumes:
+      - pathe_pgdata:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d  # C'est ici que Docker lira tes fichiers SQL !
+    networks:
+      - pathe_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d pathe_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    container_name: pathe_server
+    restart: always
+    ports:
+      - "${PORT_SERVER:-4001}:4000"
+    environment:
+      PORT: 4000
+      HOST: ${HOST_SERVER:-0.0.0.0}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://root:root@database:5432/pathe_db}
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+    volumes:
+    - ./server:/app
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - pathe_network
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: ${VITE_API_BASE:-http://localhost:4001}
+    platform: linux/amd64
+    container_name: pathe_client
+    restart: always
+    ports:
+      - "${PORT_CLIENT:-3001}:3000"
+    depends_on:
+      - server
+    networks:
+      - pathe_network
+
+# On crée un volume 100% isolé de ton autre projet
+volumes:
+  pathe_pgdata:
+
+networks:
+  pathe_network: {}
