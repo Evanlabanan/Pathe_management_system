@@ -107,4 +107,4 @@ pathe-project/
             │   └── TicketSalesList.jsx ⬜ TODO (fichier vide)
             │
             └── reports/
-                └── PatheReports.jsx    ✅ DONE (3 rapports Evan : receipt, sales, performance)
+                └── PatheReports.jsx    ✅ DONE (receipt, sales, performance)
